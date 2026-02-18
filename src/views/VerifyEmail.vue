@@ -363,20 +363,31 @@ const openEmailModal = (user) => {
     selectedUser.value = user;
     const template = getTemplateData();
     
-    emailSubject.value = template.subject;
-    
-    // Dynamic replacement
-    let message = template.message;
-    // Note: 'name' and 'company' are not present in the new API data, so we might need fallback or removal
-    message = message.replace(/{{name}}/g, user.name || 'Valued Lead');
-    message = message.replace(/{{company}}/g, user.company || user.industry || 'Your Company');
-    
-    // Mock Sender Data replacement
-    message = message.replace(/{{calendly_link}}/g, 'https://calendly.com/demo-user');
-    message = message.replace(/{{sender_name}}/g, template.sender_name || 'Alex Admin');
-    message = message.replace(/{{sender_title}}/g, 'Account Executive');
-    
-    emailBody.value = message;
+    const processReplacements = (text) => {
+        let processed = text;
+        // Basic Lead Info
+        processed = processed.replace(/{{name}}/g, user.name || '');
+        processed = processed.replace(/{{company}}/g, user.company || user.industry || 'Your Company');
+        
+        // Sender/Company Info
+        processed = processed.replace(/{{calendly_link}}/g, 'https://calendly.com/demo-user');
+        processed = processed.replace(/{{sender_name}}/g, template.sender_name || 'Alex Admin');
+        processed = processed.replace(/{{sender_title}}/g, 'Account Executive');
+        
+        const companyName = template.company_name || 'Prime Cloud Technology';
+        const companyWebsite = template.company_website || '#';
+        
+        processed = processed.replace(/{{company_name}}/g, companyName);
+        processed = processed.replace(/{{our_company_name}}/g, companyName); // User requested variation
+        
+        processed = processed.replace(/{{company_website}}/g, companyWebsite);
+        processed = processed.replace(/{{our_company_website}}/g, companyWebsite); // User requested variation
+        
+        return processed;
+    };
+
+    emailSubject.value = processReplacements(template.subject);
+    emailBody.value = processReplacements(template.message);
     
     emailModalInstance.show();
 };
