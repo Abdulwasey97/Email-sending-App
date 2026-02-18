@@ -3,29 +3,38 @@
   <div class="container py-5 fade-in">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
       <div class="card-header bg-gradient-success text-white p-4 d-flex justify-content-between align-items-center">
-        <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i> Email Verifier Dashboard</h4>
-        <span class="badge bg-white text-success rounded-pill px-3 py-2">{{ users.length }} Contacts</span>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i> Leads Dashboard</h4>
+        <span class="badge bg-white text-success rounded-pill px-3 py-2">{{ users.length }} Leads</span>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive">
+        <div v-if="loading" class="text-center p-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Fetching leads...</p>
+        </div>
+        <div v-else-if="error" class="text-center p-5 text-danger">
+            <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+            <p class="mt-2">{{ error }}</p>
+            <button @click="fetchLeads" class="btn btn-outline-danger btn-sm mt-3">Retry</button>
+        </div>
+        <div v-else class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted small text-uppercase fw-bold">
               <tr>
-                <th class="ps-4 py-3">Name</th>
-                <th class="py-3">Email</th>
-                <th class="py-3">Company</th>
-                <th class="py-3">Location</th>
-                <th class="py-3">City</th>
-                <th class="py-3">Country</th>
-                <th class="py-3">Website</th>
+                <th class="ps-4 py-3">Email</th>
+                <th class="py-3">Platform</th>
+                <th class="py-3">Industry</th>
+                <th class="py-3">Stage</th>
+                <th class="py-3">Added On</th>
+                <th class="py-3">Source</th>
                 <th class="py-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="user in paginatedUsers" :key="user.email">
-                <td class="ps-4 fw-semibold text-dark">{{ user.name }}</td>
-                <td>
-                  <div class="d-flex align-items-center">
+                <td class="ps-4">
+                  <div class="d-flex align-items-center fw-semibold text-dark">
                     {{ user.email }}
                     <span v-if="verificationResults[user.email]" class="ms-2">
                        <i v-if="verificationResults[user.email].isValid" class="bi bi-check-circle-fill text-success"></i>
@@ -33,11 +42,17 @@
                     </span>
                   </div>
                 </td>
-                <td>{{ user.company }}</td>
-                <td>{{ user.location }}</td>
-                <td>{{ user.city }}</td>
-                <td>{{ user.country }}</td>
-                <td><a :href="'https://' + user.website" target="_blank" class="text-decoration-none text-info">{{ user.website }}</a></td>
+                <td><span class="badge bg-light text-dark border">{{ user.platform }}</span></td>
+                <td>{{ user.industry }}</td>
+                <td>
+                    <span class="badge" :class="getStageBadgeClass(user.leadStage)">{{ user.leadStage }}</span>
+                </td>
+                <td class="small text-muted">{{ formatDate(user.addedOn) }}</td>
+                <td>
+                    <a v-if="user.sourceUrl" :href="user.sourceUrl" target="_blank" class="btn btn-sm btn-light border" title="View Source">
+                        <i class="bi bi-link-45deg"></i> Link
+                    </a>
+                </td>
                 <td class="text-center pe-4">
                   <div class="d-flex gap-2 justify-content-center">
                     <button 
@@ -63,7 +78,7 @@
       </div>
       
       <!-- Pagination Controls -->
-      <div class="card-footer bg-white p-3 d-flex justify-content-between align-items-center border-top">
+      <div v-if="!loading && !error && users.length > 0" class="card-footer bg-white p-3 d-flex justify-content-between align-items-center border-top">
         <div class="small text-muted">
             Showing {{ itemsStart }} to {{ itemsEnd }} of {{ users.length }} entries
         </div>
@@ -75,12 +90,12 @@
               </a>
             </li>
             <li 
-                v-for="page in totalPages" 
+                v-for="page in displayedPages" 
                 :key="page" 
                 class="page-item" 
-                :class="{ active: currentPage === page }"
+                :class="{ active: currentPage === page, disabled: page === '...' }"
             >
-              <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+              <a class="page-link" href="#" @click.prevent="page !== '...' && changePage(page)">{{ page }}</a>
             </li>
             <li class="page-item" :class="{ disabled: currentPage === totalPages }">
               <a class="page-link" href="#" aria-label="Next" @click.prevent="changePage(currentPage + 1)">
@@ -97,7 +112,7 @@
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
           <div class="modal-header bg-primary text-white p-4 border-0">
-            <h5 class="modal-title fw-bold"><i class="bi bi-envelope-paper-fill me-2"></i> Send Email to {{ selectedUser?.name }}</h5>
+            <h5 class="modal-title fw-bold"><i class="bi bi-envelope-paper-fill me-2"></i> Send Email to Lead</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body p-4 bg-light">
@@ -125,6 +140,8 @@
       </div>
     </div>
 
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
   </div>
 </template>
 
@@ -132,22 +149,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { Modal } from 'bootstrap';
 import initialTemplateData from '../data/template.json';
+// Import email styles as a string
+import emailStyles from '../data/email.css?inline';
 
-// Extended dummy data for pagination demonstration
-const users = ref([
-  { name: 'John Doe', email: 'john@example.com', company: 'TechCorp', location: 'North America', city: 'New York', country: 'USA', website: 'techcorp.com' },
-  { name: 'Jane Smith', email: 'jane.invalid@test.com', company: 'DesignHub', location: 'Europe', city: 'London', country: 'UK', website: 'designhub.io' },
-  { name: 'Alex Rivera', email: 'alex.error@company.org', company: 'SoftSystems', location: 'South America', city: 'Sao Paulo', country: 'Brazil', website: 'softsys.org' },
-  { name: 'Sarah Chen', email: 'sarah@global.net', company: 'Global Logistics', location: 'Asia', city: 'Singapore', country: 'Singapore', website: 'globallogistics.sg' },
-  { name: 'Michael Brown', email: 'michael@fintech.io', company: 'FinTech Sol', location: 'North America', city: 'San Francisco', country: 'USA', website: 'fintech.io' },
-  { name: 'Emily Davis', email: 'emily@creative.net', company: 'Creative Minds', location: 'Europe', city: 'Paris', country: 'France', website: 'creativeminds.fr' },
-  { name: 'David Wilson', email: 'david@cloud.com', company: 'Cloud Nine', location: 'Australia', city: 'Sydney', country: 'Australia', website: 'cloudnine.au' },
-  { name: 'Lisa Taylor', email: 'lisa@medtech.org', company: 'MedTech Inc', location: 'North America', city: 'Toronto', country: 'Canada', website: 'medtech.ca' },
-  { name: 'Robert Miller', email: 'robert@auto.de', company: 'AutoWorks', location: 'Europe', city: 'Berlin', country: 'Germany', website: 'autoworks.de' },
-  { name: 'Emma Wilson', email: 'emma@retail.co.uk', company: 'Retail Giant', location: 'Europe', city: 'Manchester', country: 'UK', website: 'retailgiant.co.uk' },
-  { name: 'James Anderson', email: 'james@cyber.net', company: 'CyberSec', location: 'North America', city: 'Austin', country: 'USA', website: 'cybersec.net' },
-  { name: 'Sophia Martinez', email: 'sophia@arch.es', company: 'Architectura', location: 'Europe', city: 'Madrid', country: 'Spain', website: 'architectura.es' }
-]);
+const users = ref([]);
+const loading = ref(true);
+const error = ref(null);
 
 const isVerifying = ref(null);
 const verificationResults = ref({});
@@ -167,31 +174,168 @@ const paginatedUsers = computed(() => {
 const itemsStart = computed(() => ((currentPage.value - 1) * itemsPerPage) + 1);
 const itemsEnd = computed(() => Math.min(currentPage.value * itemsPerPage, users.value.length));
 
+const displayedPages = computed(() => {
+    const total = totalPages.value;
+    const current = currentPage.value;
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    range.push(1);
+
+    for (let i = current - delta; i <= current + delta; i++) {
+        if (i < total && i > 1) {
+            range.push(i);
+        }
+    }
+
+    if (total > 1) {
+        range.push(total);
+    }
+
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                rangeWithDots.push(l + 1);
+            } else if (i - l !== 1) {
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
+
+    return rangeWithDots;
+});
+
+
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
   }
 };
 
+const getStageBadgeClass = (stage) => {
+    switch (stage?.toLowerCase()) {
+        case 'new': return 'bg-info bg-opacity-10 text-info border border-info';
+        case 'contacted': return 'bg-warning bg-opacity-10 text-warning border border-warning';
+        case 'qualified': return 'bg-success bg-opacity-10 text-success border border-success';
+        case 'lost': return 'bg-secondary bg-opacity-10 text-secondary border border-secondary';
+        default: return 'bg-light text-dark border';
+    }
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+};
+
+const fetchLeads = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        
+        const response = await fetch(`${baseUrl}/api/Lead/v1/GetLeadsFromSheet`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch leads: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (data && data.leads) {
+            users.value = data.leads;
+        } else {
+            users.value = [];
+        }
+    } catch (err) {
+        console.error("Error fetching leads:", err);
+        error.value = err.message || "An unexpected error occurred.";
+    } finally {
+        loading.value = false;
+    }
+};
+
 const verifyEmail = async (email) => {
   isVerifying.value = email;
   
   try {
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    // Using relative path to leverage the Vite proxy configured in vite.config.js
+    const response = await fetch('/api/Lead/v1/Verify_Email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        // Assuming the API expects the email in the body with key 'Email'
+        body: JSON.stringify({ Email: email })
+    });
     
-    const emailLower = email.toLowerCase();
-    if (emailLower.includes('error')) {
-      verificationResults.value[email] = { isValid: false, reason: "Simulated verification failure." };
-    } else if (emailLower.includes('invalid')) {
-      verificationResults.value[email] = { isValid: false, reason: "Domain does not exist." };
-    } else {
-      verificationResults.value[email] = { isValid: true };
+    if (!response.ok) {
+        throw new Error(`Verification failed: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    
+    // Check if Classification is 'Deliverable'
+    if (data.Status === 'Error') {
+        showToast(data.Reason || 'An error occurred during verification', 'danger');
+        verificationResults.value[email] = { isValid: false, reason: data.Reason };
+        return;
+    }
+
+    const isValid = data.Classification === 'Deliverable';
+    
+    verificationResults.value[email] = { 
+        isValid: isValid, 
+        reason: isValid ? 'Valid email' : (data.Reason || data.Classification || 'Invalid')
+    };
+    
+    if (isValid) {
+        showToast(`Email ${email} verified successfully`, 'success');
+    } else if (data.Classification === 'Undeliverable') {
+        showToast(`Email ${email} is Undeliverable`, 'warning');
+    } else {
+        showToast(`Email ${email} is ${data.Classification || 'Invalid'}`, 'warning');
+    }
+
   } catch (error) {
-    console.error(error);
+    console.error("Error verifying email:", error);
+    verificationResults.value[email] = { isValid: false, reason: "Verification error" };
+    showToast(error.message, 'danger');
   } finally {
     isVerifying.value = null;
   }
+};
+
+const showToast = (message, type = 'info') => {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) return;
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0 show`;
+    toastEl.role = 'alert';
+    toastEl.ariaLive = 'assertive';
+    toastEl.ariaAtomic = 'true';
+    
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toastEl);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toastEl.remove();
+    }, 3000);
 };
 
 // Email Sending Logic
@@ -204,6 +348,7 @@ const isSending = ref(false);
 
 onMounted(() => {
   emailModalInstance = new Modal(emailModalRef.value);
+  fetchLeads();
 });
 
 const getTemplateData = () => {
@@ -212,7 +357,7 @@ const getTemplateData = () => {
         return JSON.parse(savedData);
     }
     return initialTemplateData;
-};
+  };
 
 const openEmailModal = (user) => {
     selectedUser.value = user;
@@ -222,8 +367,9 @@ const openEmailModal = (user) => {
     
     // Dynamic replacement
     let message = template.message;
-    message = message.replace(/{{name}}/g, user.name);
-    message = message.replace(/{{company}}/g, user.company);
+    // Note: 'name' and 'company' are not present in the new API data, so we might need fallback or removal
+    message = message.replace(/{{name}}/g, user.name || 'Valued Lead');
+    message = message.replace(/{{company}}/g, user.company || user.industry || 'Your Company');
     
     // Mock Sender Data replacement
     message = message.replace(/{{calendly_link}}/g, 'https://calendly.com/demo-user');
@@ -238,14 +384,52 @@ const openEmailModal = (user) => {
 const sendEmail = async () => {
     isSending.value = true;
     try {
-        // Mock API latency
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Construct full HTML body with styles
+        const fullHtmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+${emailStyles}
+</style>
+</head>
+<body>
+${emailBody.value}
+</body>
+</html>`;
+
+        // Using relative path to leverage the Vite proxy
+        const response = await fetch('/api/Lead/Sending_Email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ToEmail: selectedUser.value.email,
+                Subject: emailSubject.value,
+                Body: fullHtmlBody
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to send email: ${response.statusText}`);
+        }
+
+        const data = await response.json();
         
+        // Assuming API returns a success indicator, if not explicitly check, rely on 200 OK
+        // Adjust this check based on actual API response structure if needed
+        if (data.Status === 'Error') {
+             throw new Error(data.Reason || 'Email sending failed');
+        }
+
         emailModalInstance.hide();
-        alert(`Email successfully sent to ${selectedUser.value.email}!`);
+        showToast(`Email successfully sent to ${selectedUser.value.email}!`, 'success');
         
     } catch (e) {
-        alert('Failed to send email.');
+        console.error("Error sending email:", e);
+        showToast(e.message || 'Failed to send email.', 'danger');
     } finally {
         isSending.value = false;
     }
@@ -326,4 +510,5 @@ const sendEmail = async () => {
     background-color: transparent;
 }
 </style>
+
 ```

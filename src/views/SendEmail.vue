@@ -75,13 +75,16 @@
                   </div>
                 </div>
 
-                <div class="col-12 mt-4">
-                  <button class="btn btn-primary btn-lg w-100 send-btn position-relative overflow-hidden" type="submit" :disabled="isSaving">
+                <div class="col-12 mt-4 d-flex gap-3">
+                  <button class="btn btn-primary btn-lg flex-grow-1 send-btn position-relative overflow-hidden" type="submit" :disabled="isSaving">
                     <div class="d-flex align-items-center justify-content-center">
                         <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         <span v-if="!isSaving" class="me-2"><i class="bi bi-save"></i></span>
                         <span>{{ isSaving ? 'Saving...' : 'Save Template' }}</span>
                     </div>
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary btn-lg" @click="resetToDefault" :disabled="isSaving" title="Reset to default template from file">
+                    <i class="bi bi-arrow-counterclockwise"></i>
                   </button>
                 </div>
               </div>
@@ -138,10 +141,7 @@ const saveTemplate = async () => {
   errorMessage.value = '';
 
   try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Save to LocalStorage to simulate "Saving to JSON" persistence
+    // Save to server
     const dataToSave = {
       from: form.from,
       sender_name: form.sender_name,
@@ -150,12 +150,24 @@ const saveTemplate = async () => {
       company_website: form.company_website,
       message: form.message
     };
+
+    // Call our dev server middleware
+    const response = await fetch('/dev/save-template', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dataToSave, null, 2)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to save: ${await response.text()}`);
+    }
+
+    // Also update LocalStorage for consistency (though file is now priority if we reload)
     localStorage.setItem('emailTemplateConfig', JSON.stringify(dataToSave));
     
-    // Log for demonstration
-    console.log('Saved to JSON (simulated):', JSON.stringify(dataToSave, null, 2));
-
-    successMessage.value = `Template saved successfully!`;
+    successMessage.value = `Template saved successfully to file!`;
 
   } catch (error) {
     console.error(error);
@@ -163,6 +175,21 @@ const saveTemplate = async () => {
   } finally {
     isSaving.value = false;
   }
+};
+
+const resetToDefault = () => {
+    if (confirm('Are you sure you want to reset to the default template? This will discard your saved changes.')) {
+        localStorage.removeItem('emailTemplateConfig');
+        
+        form.from = initialTemplateData.from;
+        form.sender_name = initialTemplateData.sender_name || '';
+        form.subject = initialTemplateData.subject;
+        form.company_name = initialTemplateData.company_name || '';
+        form.company_website = initialTemplateData.company_website || '';
+        form.message = initialTemplateData.message;
+        
+        successMessage.value = "Reset to default template.";
+    }
 };
 </script>
 

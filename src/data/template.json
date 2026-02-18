@@ -1,8 +1,8 @@
 {
-  "from": "sender@example.com",
-  "subject": "Partnership Opportunity",
-  "sender_name": "Alex Admin",
-  "company_name": "My Creative Agency",
-  "company_website": "www.myagency.com",
-  "message": "Hi {{name}},\n\nI hope you are doing well. I noticed that your company, {{company}}, does not currently have a website. I’d love to help you establish an online presence that can boost your business and reach more customers.\n\nIf you’re interested, we can schedule a quick call to discuss how we can get started.\n\nSchedule a call: {{calendly_link}}\n\nLooking forward to hearing from you!\n\nBest regards,\n{{sender_name}}\n{{sender_title}}"
+  "from": "abdulwasey@primecloudtech.net",
+  "sender_name": "Abdul Wasey",
+  "subject": "Partnership Opportunity with {{company}}",
+  "company_name": "Prime Cloud Technology",
+  "company_website": "https://primecloudtech.net",
+  "message": "<div class=\"email-container\">\n  <div class=\"email-header\"></div>\n  <div class=\"email-body\">\n    <p>Hi <strong>{{name}}</strong>,</p>\n    \n    <p>I hope you are doing well. I noticed that your company, <strong>{{company}}</strong>, does not currently have a website. I’d love to help you establish an online presence that can boost your business and reach more customers.</p>\n    \n    <p>If you’re interested, we can schedule a quick call to discuss how we can get started.</p>\n    \n    <p style=\"text-align: center;\">\n      <a href=\"{{calendly_link}}\" class=\"cta-button\">Schedule a Free Consultation</a>\n    </p>\n    \n    <p>Looking forward to hearing from you!</p>\n  </div>\n  \n  <div class=\"footer\">\n    <p style=\"margin-bottom: 10px;\">Best regards,</p>\n    <span class=\"signature\">{{sender_name}}</span>\n    <span class=\"signature-title\">{{sender_title}}</span>\n  </div>\n</div>"
 }

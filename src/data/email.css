@@ -1,0 +1,119 @@
+/* Global Email Body Styles - Lighter Teal Theme */
+body {
+    background-color: #e0f7fa; /* Very Light Cyan */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    -webkit-font-smoothing: antialiased;
+    color: #455a64; /* Dark Blue-Grey for primary text */
+}
+
+/* Main Email Wrapper */
+.email-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 150, 136, 0.1); /* Soft Teal Shadow */
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #546e7a; /* Medium Blue-Grey */
+    border: 1px solid #b2dfdb; /* Light Teal Border */
+}
+
+/* Header/Top Accent Bar */
+.email-header {
+    background: #214246;
+    height: 6px;
+    width: 100%;
+}
+
+/* Content Padding */
+.email-body {
+    padding: 40px;
+}
+
+/* Typography */
+h1, h2, h3 {
+    color: #214246; /* Deep Teal Heading */
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+p {
+    margin-bottom: 20px;
+    color: #546e7a;
+}
+
+strong {
+    color: #214246; /* Medium Teal for emphasis */
+    font-weight: 600;
+}
+
+/* Links */
+a {
+    color: #214246; /* Primary Teal */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #214246; /* Darker Teal on hover */
+    text-decoration: underline;
+}
+
+/* Call to Action Button */
+.cta-button {
+    display: inline-block;
+    background: #214246; /* Teal Gradient */
+    color: #ffffff !important;
+    padding: 14px 28px;
+    text-decoration: none !important;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 30px 0;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 137, 123, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+    background: #214246;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 137, 123, 0.4);
+}
+
+/* Footer Section */
+.footer {
+    background-color: #e8eff0; /* Very light tint of #214246 */
+    padding: 30px 40px;
+    border-top: 1px solid #d0e0e3;
+    font-size: 14px;
+    color: #4b6267;
+}
+
+.signature {
+    font-weight: 700;
+    color: #214246;
+    font-size: 16px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.signature-title {
+    display: block;
+    color:#214246;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* Divider */
+hr {
+    border: 0;
+    border-bottom: 1px solid #b2dfdb;
+    margin: 30px 0;
+}
