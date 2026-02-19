@@ -56,6 +56,7 @@
                 <td class="text-center pe-4">
                   <div class="d-flex gap-2 justify-content-center">
                     <button 
+                      v-if="shouldShowVerify(user.leadStage)"
                       @click="verifyEmail(user.email)" 
                       class="btn btn-sm btn-outline-success rounded-pill px-3" 
                       :disabled="isVerifying === user.email"
@@ -64,6 +65,7 @@
                       {{ isVerifying === user.email ? 'Verifying' : 'Verify' }}
                     </button>
                     <button 
+                      v-if="shouldShowSend(user.leadStage)"
                       @click="openEmailModal(user)" 
                       class="btn btn-sm btn-primary rounded-pill px-3"
                     >
@@ -224,6 +226,16 @@ const getStageBadgeClass = (stage) => {
         case 'lost': return 'bg-secondary bg-opacity-10 text-secondary border border-secondary';
         default: return 'bg-light text-dark border';
     }
+};
+
+const shouldShowVerify = (stage) => {
+    const lowerStage = stage?.toLowerCase() || '';
+    return lowerStage !== 'verified' && lowerStage !== 'contacted';
+};
+
+const shouldShowSend = (stage) => {
+    const lowerStage = stage?.toLowerCase() || '';
+    return lowerStage !== 'contacted';
 };
 
 const formatDate = (dateString) => {
