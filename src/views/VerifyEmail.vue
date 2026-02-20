@@ -1,12 +1,93 @@
 ```vue
 <template>
   <div class="container py-5 fade-in">
-    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-      <div class="card-header bg-gradient-success text-white p-4 d-flex justify-content-between align-items-center">
-        <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i> Leads Dashboard</h4>
-        <span class="badge bg-white text-success rounded-pill px-3 py-2">{{ users.length }} Leads</span>
+    <!-- Top Search Card (API Search) -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+      <div class="card-body p-4 bg-white">
+        <div class="row align-items-center">
+          <div class="col-md-auto mb-2 mb-md-0">
+            <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+              <i class="bi bi-search text-success me-2"></i> Find External Leads
+            </h5>
+            <p class="small text-muted mb-0">Search new leads by industry using our lookup API</p>
+          </div>
+          <div class="col-md">
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-building text-muted"></i>
+              </span>
+              <input 
+                type="text" 
+                id="searchIndustry" 
+                v-model="searchIndustry" 
+                class="form-control border-start-0 bg-light" 
+                placeholder="Enter industry (e.g. IT, Real Estate, Healthcare)"
+                @keyup.enter="searchLeads"
+              >
+              <button 
+                @click="searchLeads" 
+                class="btn btn-success px-4 fw-bold shadow-sm d-flex align-items-center"
+                :disabled="isSearchingLeads"
+              >
+                <span v-if="isSearchingLeads" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i v-else class="bi bi-cloud-arrow-down-fill me-2"></i>
+                {{ isSearchingLeads ? 'Searching...' : 'Search Leads' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- Leads Dashboard Card -->
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+      <div class="card-header bg-gradient-success text-white p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i> Leads Dashboard</h4>
+            <p class="mb-0 small opacity-75">Manage and verify your collected leads</p>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <div class="local-filter d-none d-lg-block">
+              <div class="input-group input-group-sm rounded-pill overflow-hidden bg-white bg-opacity-10 border border-white border-opacity-25">
+                <span class="input-group-text bg-transparent border-0 text-white">
+                  <i class="bi bi-funnel"></i>
+                </span>
+                <input 
+                  type="text" 
+                  v-model="tableSearch" 
+                  class="form-control bg-transparent border-0 text-white placeholder-white-50" 
+                  placeholder="Filter table..."
+                  style="width: 200px;"
+                >
+                <span v-if="tableSearch" @click="tableSearch = ''" class="input-group-text bg-transparent border-0 text-white cursor-pointer">
+                  <i class="bi bi-x-circle-fill"></i>
+                </span>
+              </div>
+            </div>
+            <span class="badge bg-white text-success rounded-pill px-3 py-2">
+              {{ tableSearch ? filteredUsers.length + ' / ' : '' }}{{ users.length }} Leads
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div class="card-body p-0">
+        <!-- Mobile Table Filter (Only visible on small screens) -->
+        <div class="p-3 bg-light border-bottom d-lg-none">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted">
+              <i class="bi bi-funnel"></i>
+            </span>
+            <input 
+              type="text" 
+              v-model="tableSearch" 
+              class="form-control border-start-0" 
+              placeholder="Filter leads by email or industry..."
+            >
+          </div>
+        </div>
+
         <div v-if="loading" class="text-center p-5">
             <div class="spinner-border text-success" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -19,7 +100,7 @@
             <button @click="fetchLeads" class="btn btn-outline-danger btn-sm mt-3">Retry</button>
         </div>
         <div v-else class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+          <table v-if="filteredUsers.length > 0" class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted small text-uppercase fw-bold">
               <tr>
                 <th class="ps-4 py-3">Email</th>
@@ -76,13 +157,19 @@
               </tr>
             </tbody>
           </table>
+          <div v-else class="text-center p-5">
+            <i class="bi bi-search fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">No leads match your search criteria.</p>
+            <button @click="tableSearch = ''" class="btn btn-link text-success">Clear Filter</button>
+          </div>
         </div>
       </div>
       
       <!-- Pagination Controls -->
       <div v-if="!loading && !error && users.length > 0" class="card-footer bg-white p-3 d-flex justify-content-between align-items-center border-top">
         <div class="small text-muted">
-            Showing {{ itemsStart }} to {{ itemsEnd }} of {{ users.length }} entries
+            Showing {{ itemsStart }} to {{ itemsEnd }} of {{ filteredUsers.length }} entries
+            <span v-if="tableSearch"> (filtered from {{ users.length }})</span>
         </div>
         <nav aria-label="Page navigation">
           <ul class="pagination mb-0">
@@ -148,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Modal } from 'bootstrap';
 import initialTemplateData from '../data/template.json';
 // Import email styles as a string
@@ -161,20 +248,38 @@ const error = ref(null);
 const isVerifying = ref(null);
 const verificationResults = ref({});
 
+const searchIndustry = ref('');
+const tableSearch = ref('');
+const isSearchingLeads = ref(false);
+
 // Pagination Logic
 const currentPage = ref(1);
 const itemsPerPage = 10;
 
-const totalPages = computed(() => Math.ceil(users.value.length / itemsPerPage));
+const filteredUsers = computed(() => {
+  if (!tableSearch.value.trim()) return users.value;
+  
+  const query = tableSearch.value.toLowerCase().trim();
+  return users.value.filter(user => {
+    return (
+      (user.email && user.email.toLowerCase().includes(query)) ||
+      (user.platform && user.platform.toLowerCase().includes(query)) ||
+      (user.industry && user.industry.toLowerCase().includes(query)) ||
+      (user.leadStage && user.leadStage.toLowerCase().includes(query))
+    );
+  });
+});
+
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage));
 
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return users.value.slice(start, end);
+  return filteredUsers.value.slice(start, end);
 });
 
-const itemsStart = computed(() => ((currentPage.value - 1) * itemsPerPage) + 1);
-const itemsEnd = computed(() => Math.min(currentPage.value * itemsPerPage, users.value.length));
+const itemsStart = computed(() => filteredUsers.value.length === 0 ? 0 : ((currentPage.value - 1) * itemsPerPage) + 1);
+const itemsEnd = computed(() => Math.min(currentPage.value * itemsPerPage, filteredUsers.value.length));
 
 const displayedPages = computed(() => {
     const total = totalPages.value;
@@ -269,6 +374,46 @@ const fetchLeads = async () => {
         error.value = err.message || "An unexpected error occurred.";
     } finally {
         loading.value = false;
+    }
+};
+
+// Watch tableSearch to reset pagination
+watch(tableSearch, () => {
+    currentPage.value = 1;
+});
+
+const searchLeads = async () => {
+    if (!searchIndustry.value.trim()) {
+        showToast('Please enter an industry to search', 'warning');
+        return;
+    }
+
+    isSearchingLeads.value = true;
+    try {
+        const response = await fetch('/api/Lead/v1/LookingUp_Leads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                industry: searchIndustry.value.trim()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Search failed: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // Display API response message and total emails in toaster
+        const toastMsg = `${data.Reason || 'Successfully Searched Leads'} (Total Emails: ${data.totalEmails ?? 0})`;
+        showToast(toastMsg, data.Status === 'Success' ? 'success' : 'info');
+    } catch (err) {
+        console.error("Error searching leads:", err);
+        showToast(err.message || "An error occurred during search", 'danger');
+    } finally {
+        isSearchingLeads.value = false;
     }
 };
 
@@ -531,6 +676,52 @@ ${emailBody.value}
 .page-item.disabled .page-link {
     color: #ccc;
     background-color: transparent;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.placeholder-white-50::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.local-filter .form-control:focus {
+    box-shadow: none;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Fix Input Group Focus Outline */
+.input-group:focus-within {
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .btn {
+    border-color: #0f5132 !important; /* Darker green for better contrast */
+    z-index: 1 !important;
+}
+
+.form-control:focus, .btn:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Header Filter Focus Fix (On Green/Teal Gradient) */
+.local-filter .input-group:focus-within {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.4);
+    border-color: #ffffff !important; /* Solid white border for maximum contrast */
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.local-filter .input-group:focus-within .input-group-text,
+.local-filter .input-group:focus-within .form-control {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
 }
 </style>
 
