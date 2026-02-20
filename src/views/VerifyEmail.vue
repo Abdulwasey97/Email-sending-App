@@ -20,10 +20,20 @@
                 type="text" 
                 id="searchIndustry" 
                 v-model="searchIndustry" 
-                class="form-control border-start-0 bg-light" 
+                class="form-control border-start-0 border-end-0 bg-light" 
                 placeholder="Enter industry (e.g. IT, Real Estate, Healthcare)"
                 @keyup.enter="searchLeads"
               >
+              <select 
+                v-model="searchSource" 
+                class="form-select border-start-0 bg-light" 
+                style="width: 200px; flex: 0 0 auto;"
+              >
+                <option value="" disabled selected hidden>Select Source</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="linkedin">LinkedIn</option>
+              </select>
               <button 
                 @click="searchLeads" 
                 class="btn btn-success px-4 fw-bold shadow-sm d-flex align-items-center"
@@ -249,6 +259,7 @@ const isVerifying = ref(null);
 const verificationResults = ref({});
 
 const searchIndustry = ref('');
+const searchSource = ref('');
 const tableSearch = ref('');
 const isSearchingLeads = ref(false);
 
@@ -387,6 +398,11 @@ const searchLeads = async () => {
         showToast('Please enter an industry to search', 'warning');
         return;
     }
+    
+    if (!searchSource.value) {
+        showToast('Please select a source', 'warning');
+        return;
+    }
 
     isSearchingLeads.value = true;
     try {
@@ -396,7 +412,8 @@ const searchLeads = async () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                industry: searchIndustry.value.trim()
+                industry: searchIndustry.value.trim(),
+                source: searchSource.value
             })
         });
 
@@ -701,6 +718,7 @@ ${emailBody.value}
 
 .input-group:focus-within .input-group-text,
 .input-group:focus-within .form-control,
+.input-group:focus-within .form-select,
 .input-group:focus-within .btn {
     border-color: #0f5132 !important; /* Darker green for better contrast */
     z-index: 1 !important;
