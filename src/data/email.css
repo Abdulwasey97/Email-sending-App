@@ -148,24 +148,20 @@ a:hover {
 /* ── CTA Button ──────────────────────────────── */
 .cta-button {
     display: inline-block;
-    background: linear-gradient(135deg, #1d7a8a 0%, #214246 100%);
+    background-color: #16404a;
     color: #ffffff !important;
-    padding: 14px 36px;
+    padding: 12px 32px;
     text-decoration: none !important;
-    border-radius: 8px;
-    font-weight: 700;
+    border-radius: 6px;
+    font-weight: 600;
     font-size: 15px;
     margin: 24px 0;
     text-align: center;
-    letter-spacing: 0.4px;
-    box-shadow: 0 5px 18px rgba(29, 122, 138, 0.38);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    letter-spacing: 0.3px;
 }
 
 .cta-button:hover {
-    background: linear-gradient(135deg, #176879 0%, #1a3338 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(29, 122, 138, 0.48);
+    background-color: #1d5a6a;
     text-decoration: none !important;
 }
 

@@ -547,6 +547,7 @@ const openEmailModal = (user) => {
         processed = processed.replace(/{{calendly_link}}/g, 'https://calendly.com/demo-user');
         processed = processed.replace(/{{sender_name}}/g, template.sender_name || 'Alex Admin');
         processed = processed.replace(/{{sender_title}}/g, 'Account Executive');
+        processed = processed.replace(/{{from}}/g, template.from || '');
         
         const companyName = template.company_name || 'Prime Cloud Technology';
         const companyWebsite = template.company_website || '#';
