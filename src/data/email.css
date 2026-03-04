@@ -1,119 +1,227 @@
-/* Global Email Body Styles - Lighter Teal Theme */
+/* =============================================
+   Prime Cloud Technologies – Email Template CSS
+   ============================================= */
+
+/* Global Email Body Styles */
 body {
-    background-color: #e0f7fa; /* Very Light Cyan */
+    background-color: #eef2f7;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 20px;
     -webkit-font-smoothing: antialiased;
-    color: #455a64; /* Dark Blue-Grey for primary text */
+    color: #455a64;
 }
 
-/* Main Email Wrapper */
+/* ── Main Wrapper ─────────────────────────────── */
 .email-container {
-    max-width: 600px;
+    max-width: 620px;
     margin: 0 auto;
     background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 150, 136, 0.1); /* Soft Teal Shadow */
+    border-radius: 14px;
+    box-shadow: 0 6px 32px rgba(33, 66, 70, 0.13);
     overflow: hidden;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #546e7a; /* Medium Blue-Grey */
-    border: 1px solid #b2dfdb; /* Light Teal Border */
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: #3d5159;
+    border: 1px solid #c8dfe3;
 }
 
-/* Header/Top Accent Bar */
+/* ── Header Banner ───────────────────────────── */
 .email-header {
-    background: #214246;
-    height: 6px;
-    width: 100%;
+    background: linear-gradient(135deg, #16404a 0%, #214246 55%, #2a6170 100%);
+    padding: 28px 40px;
+    text-align: center;
 }
 
-/* Content Padding */
+.email-logo {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: inline-block;
+    padding: 8px 24px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.07);
+}
+
+/* ── Body Content ────────────────────────────── */
 .email-body {
-    padding: 40px;
+    padding: 40px 44px 32px;
 }
 
-/* Typography */
-h1, h2, h3 {
-    color: #214246; /* Deep Teal Heading */
+/* ── Headline ────────────────────────────────── */
+.email-headline {
+    color: #16404a;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.4;
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    border-left: 4px solid #2a8fa0;
+    padding-left: 14px;
+}
+
+.highlight {
+    color: #1d7a8a;
+    font-style: italic;
+}
+
+/* ── Typography ──────────────────────────────── */
+h1, h2, h3 {
+    color: #16404a;
+    margin-top: 0;
+    margin-bottom: 18px;
     font-weight: 700;
 }
 
 p {
-    margin-bottom: 20px;
-    color: #546e7a;
+    margin-bottom: 18px;
+    color: #3d5159;
 }
 
 strong {
-    color: #214246; /* Medium Teal for emphasis */
-    font-weight: 600;
+    color: #16404a;
+    font-weight: 700;
 }
 
-/* Links */
+em {
+    color: #6a8a91;
+    font-style: italic;
+}
+
+/* ── Links ───────────────────────────────────── */
 a {
-    color: #214246; /* Primary Teal */
+    color: #1d7a8a;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s ease;
 }
 
 a:hover {
-    color: #214246; /* Darker Teal on hover */
+    color: #16404a;
     text-decoration: underline;
 }
 
-/* Call to Action Button */
+/* ── Services Checklist ──────────────────────── */
+.services-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    background: #f4f9fa;
+    border: 1px solid #d0e8ec;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.services-list li {
+    padding: 11px 18px;
+    border-bottom: 1px solid #e0eff2;
+    color: #2e4f57;
+    font-size: 14.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.services-list li:last-child {
+    border-bottom: none;
+}
+
+.services-list li:hover {
+    background: #e6f4f7;
+}
+
+.check-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #214246;
+    font-size: 16px;
+    font-weight: 900;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+/* ── CTA Button ──────────────────────────────── */
 .cta-button {
     display: inline-block;
-    background: #214246; /* Teal Gradient */
+    background: linear-gradient(135deg, #1d7a8a 0%, #214246 100%);
     color: #ffffff !important;
-    padding: 14px 28px;
+    padding: 14px 36px;
     text-decoration: none !important;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 16px;
-    margin: 30px 0;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 24px 0;
     text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 137, 123, 0.3);
+    letter-spacing: 0.4px;
+    box-shadow: 0 5px 18px rgba(29, 122, 138, 0.38);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .cta-button:hover {
-    background: #214246;
+    background: linear-gradient(135deg, #176879 0%, #1a3338 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 137, 123, 0.4);
+    box-shadow: 0 8px 22px rgba(29, 122, 138, 0.48);
+    text-decoration: none !important;
 }
 
-/* Footer Section */
+/* ── Footer ──────────────────────────────────── */
 .footer {
-    background-color: #e8eff0; /* Very light tint of #214246 */
-    padding: 30px 40px;
-    border-top: 1px solid #d0e0e3;
-    font-size: 14px;
+    background: linear-gradient(135deg, #eaf4f6 0%, #d9eef2 100%);
+    padding: 28px 44px;
+    border-top: 3px solid #214246;
+    font-size: 13.5px;
+    color: #4b6267;
+}
+
+.footer p {
+    margin-bottom: 4px;
     color: #4b6267;
 }
 
 .signature {
-    font-weight: 700;
-    color: #214246;
+    font-weight: 800;
+    color: #16404a;
     font-size: 16px;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .signature-title {
     display: block;
-    color:#214246;
-    font-size: 14px;
+    color: #2a6170;
+    font-size: 13px;
     font-style: italic;
+    margin-bottom: 4px;
 }
 
-/* Divider */
+.signature-email {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.signature-email a {
+    color: #1d7a8a;
+}
+
+.footer-website {
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+.footer-website a {
+    color: #1d7a8a;
+    font-weight: 600;
+}
+
+/* ── Divider ─────────────────────────────────── */
 hr {
     border: 0;
-    border-bottom: 1px solid #b2dfdb;
-    margin: 30px 0;
+    border-bottom: 1px solid #c4dfe4;
+    margin: 28px 0;
 }
