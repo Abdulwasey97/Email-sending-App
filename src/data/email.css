@@ -179,13 +179,7 @@ a:hover {
     color: #4b6267;
 }
 
-.signature {
-    font-weight: 800;
-    color: #16404a;
-    font-size: 16px;
-    display: block;
-    margin-bottom: 2px;
-}
+
 
 .signature-title {
     display: block;
@@ -207,7 +201,8 @@ a:hover {
 
 .footer-website {
     font-size: 13px;
-    margin-top: 2px;
+    margin-top: 10px;
+    text-align: left;
 }
 
 .footer-website a {
@@ -220,4 +215,24 @@ hr {
     border: 0;
     border-bottom: 1px solid #c4dfe4;
     margin: 28px 0;
+}
+
+
+.footer-logo {
+    width: 250px; /* Adjust as needed */
+    height: auto;
+    display: inline-block; /* 1. Keeps it on the same line as text */
+    vertical-align: middle; /* 2. Aligns the middle of the logo with the text height */
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.signature {
+    display: inline-block; /* 3. Allows the text to sit next to the logo */
+    vertical-align: middle;
+    font-weight: 800;
+    color: #16404a;
+    font-size: 16px;
+    margin-right: 10px; /* Adds space between text and logo */
 }
