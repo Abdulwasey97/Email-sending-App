@@ -157,10 +157,13 @@
                     </button>
                     <button 
                       v-if="shouldShowSend(user.leadStage)"
-                      @click="openEmailModal(user)" 
+                      @click="sendEmailDirect(user)" 
                       class="btn btn-sm btn-primary rounded-pill px-3"
+                      :disabled="isSending && sendingEmailFor === user.email"
                     >
-                      <i class="bi bi-envelope-fill me-1"></i> Send
+                      <span v-if="isSending && sendingEmailFor === user.email" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                      <i v-else class="bi bi-envelope-fill me-1"></i> 
+                      {{ isSending && sendingEmailFor === user.email ? 'Sending...' : 'Send' }}
                     </button>
                   </div>
                 </td>
@@ -519,6 +522,7 @@ const selectedUser = ref(null);
 const emailSubject = ref('');
 const emailBody = ref('');
 const isSending = ref(false);
+const sendingEmailFor = ref(null);
 
 onMounted(() => {
   emailModalInstance = new Modal(emailModalRef.value);
@@ -567,10 +571,41 @@ const openEmailModal = (user) => {
     emailModalInstance.show();
 };
 
-const sendEmail = async () => {
+const buildEmailForUser = (user) => {
+    const template = getTemplateData();
+
+    const processReplacements = (text) => {
+        let processed = text;
+        processed = processed.replace(/{{name}}/g, user.name || '');
+        processed = processed.replace(/{{company}}/g, user.company || user.industry || 'Your Company');
+        processed = processed.replace(/{{calendly_link}}/g, 'https://calendly.com/demo-user');
+        processed = processed.replace(/{{sender_name}}/g, template.sender_name || 'Alex Admin');
+        processed = processed.replace(/{{sender_title}}/g, 'Account Executive');
+        processed = processed.replace(/{{from}}/g, template.from || '');
+
+        const companyName = template.company_name || 'Prime Cloud Technology';
+        const companyWebsite = template.company_website || '#';
+
+        processed = processed.replace(/{{company_name}}/g, companyName);
+        processed = processed.replace(/{{our_company_name}}/g, companyName);
+        processed = processed.replace(/{{company_website}}/g, companyWebsite);
+        processed = processed.replace(/{{our_company_website}}/g, companyWebsite);
+
+        return processed;
+    };
+
+    return {
+        subject: processReplacements(template.subject),
+        body: processReplacements(template.message),
+    };
+};
+
+const sendEmailDirect = async (user) => {
+    const { subject, body } = buildEmailForUser(user);
+
     isSending.value = true;
+    sendingEmailFor.value = user.email;
     try {
-        // Construct full HTML body with styles
         const fullHtmlBody = `
 <!DOCTYPE html>
 <html>
@@ -581,19 +616,18 @@ ${emailStyles}
 </style>
 </head>
 <body>
-${emailBody.value}
+${body}
 </body>
 </html>`;
 
-        // Using relative path to leverage the Vite proxy
         const response = await fetch('/api/Lead/Sending_Email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                ToEmail: selectedUser.value.email,
-                Subject: emailSubject.value,
+                ToEmail: user.email,
+                Subject: subject,
                 Body: fullHtmlBody
             })
         });
@@ -604,20 +638,18 @@ ${emailBody.value}
 
         const data = await response.json();
         
-        // Assuming API returns a success indicator, if not explicitly check, rely on 200 OK
-        // Adjust this check based on actual API response structure if needed
         if (data.Status === 'Error') {
              throw new Error(data.Reason || 'Email sending failed');
         }
 
-        emailModalInstance.hide();
-        showToast(`Email successfully sent to ${selectedUser.value.email}!`, 'success');
+        showToast(`Email successfully sent to ${user.email}!`, 'success');
         
     } catch (e) {
         console.error("Error sending email:", e);
         showToast(e.message || 'Failed to send email.', 'danger');
     } finally {
         isSending.value = false;
+        sendingEmailFor.value = null;
     }
 };
 

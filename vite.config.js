@@ -46,7 +46,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://localhost:44352",
+        target: "https://leadreach.api-pct.com",
         changeOrigin: true,
         secure: false,
       },
